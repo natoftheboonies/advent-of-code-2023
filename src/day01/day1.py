@@ -1,25 +1,25 @@
 """
-Author: Darren
-Date: 01/12/2023
+Author: Nat with Darren's template
+Date: 2023-12-01
 
 Solving https://adventofcode.com/2023/day/1
 
-Part 1:
+Part 1: easy find-the-numbers.
 
-Part 2:
+Part 2: now some numbers are words.  search/replace doesn't work 
+as some words are substrings of other words.
 
 """
 import logging
 import time
 import aoc_common.aoc_commons as ac
-import re
 
 YEAR = 2023
 DAY = 1
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -36,14 +36,15 @@ def part1():
 
     solution = 0
     for line in data:
-        nums = list(map(int, re.findall(r"\d", line)))
+        nums = []
+        for char in line:
+            if char.isdigit():
+                nums.append(int(char))
         val = nums[0] * 10 + nums[-1]
         logger.debug(val)
         solution += val
     logger.info("Part 1: %s", solution)
-
-    # solution = 0
-    # logger.info("Part 2: %s", solution)
+    assert solution == 54239
 
 
 replace = {
@@ -56,58 +57,46 @@ replace = {
     "seven": 7,
     "eight": 8,
     "nine": 9,
-    "oneight": 8,
 }
 
 
-def translate(string):
+def calibration(line):
+    """
+    find all numbers
+    find all words to replace with numbers
+    return 10 * first number + last number
+    """
     i = 0
-    transl = ""
-    while i < len(string):
-        if string[i].isdigit():
-            transl += string[i]
+    nums = []
+    while i < len(line):
+        if line[i].isdigit():
+            nums.append(int(line[i]))
 
-        for match in replace.keys():
-            if string[i:].startswith(match):
-                transl += str(replace[match])
+        for match in replace:
+            if line[i:].startswith(match):
+                nums.append(replace[match])
         i += 1
-    return transl
+    return 10 * nums[0] + nums[-1]
 
 
 def part2():
     with open(locations.input_file, mode="rt") as f:
         data = f.read().splitlines()
 
-    logger.debug(data)
-
-    # sevenine, eightwo, nineight, oneight, threeight
-
-    string = "ggdone3nbmsthreefourninefiveoneightpr"
-    logger.debug(translate(string))
-
-    # find all words to replace
-    # find all numbers
-    # replace words with numbers
+    # logger.debug(data)
 
     solution = 0
-    count = 0
     for line in data:
         logger.debug(line)
-        line = translate(line)
-        nums = list(map(int, re.findall(r"\d", line)))
-        val = nums[0] * 10 + nums[-1]
+        val = calibration(line)
         logger.debug(val)
         solution += val
-    # if count == 106:
-    #     break
     logger.info("Part 2: %s", solution)
-    # not 55330, 55743
-
-    # solution = 0
-    # logger.info("Part 2: %s", solution)
+    assert solution == 55343
 
 
 def main():
+    part1()
     part2()
 
 

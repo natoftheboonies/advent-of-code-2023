@@ -34,7 +34,7 @@ from colorama import Fore
 
 # logger for aoc_commons only
 logger = logging.getLogger(__name__)  # aoc_common.aoc_commons
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 class ColouredFormatter(logging.Formatter):
