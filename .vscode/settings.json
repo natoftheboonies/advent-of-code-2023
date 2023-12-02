@@ -2,5 +2,7 @@
     "terminal.integrated.env.linux": {
         "PYTHONPATH": "${workspaceFolder}/src",
       },
+      "terminal.integrated.env.osx": {"PYTHONPATH": "${workspaceFolder}/src"},
+
       "python.envFile": "${workspaceFolder}/.env"
 }

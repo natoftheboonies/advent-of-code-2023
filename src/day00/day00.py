@@ -1,6 +1,6 @@
 """
-Author: Darren
-Date: 01/12/2023
+Author: Nat with Darren's Template
+Date: 2023-12-01
 
 Solving https://adventofcode.com/2023/day/1
 
