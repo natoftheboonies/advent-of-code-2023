@@ -13,7 +13,7 @@ import logging
 import time
 import aoc_common.aoc_commons as ac
 
-YEAR = 2017
+YEAR = 2023
 DAY = 1
 
 locations = ac.get_locations(__file__)

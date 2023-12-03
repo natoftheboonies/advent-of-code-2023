@@ -1,6 +1,6 @@
 """
 Author: Nat with Darren's Template
-Date: 2023-12-01
+Date: 2023-12-02
 
 Solving https://adventofcode.com/2023/day/2
 
