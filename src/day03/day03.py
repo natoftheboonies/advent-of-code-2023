@@ -4,9 +4,9 @@ Date: 2023-12-03
 
 Solving https://adventofcode.com/2023/day/3
 
-Part 1:
+Part 1: find all numbers adjacent to a part (symbol) and sum them
 
-Part 2:
+Part 2: find the product of the numbers adjacent to a gear (*)
 
 """
 import logging
@@ -18,7 +18,7 @@ DAY = 3
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -67,8 +67,7 @@ def main():
                             valid_part = True
                             if look in gears:
                                 gear_part = look
-                            # break
-
+                            break
             else:
                 if current_number:
                     if valid_part:
@@ -80,9 +79,13 @@ def main():
                     number_start = None
                     current_number = None
                     valid_part = False
+        # line ends
         if current_number and valid_part:
             part1 += current_number
             line_parts.append((number_start, col, current_number))
+            if gear_part:
+                gear_dict[gear_part].append(current_number)
+                gear_part = None
             number_start = None
             current_number = None
         # logger.debug("line_parts %s", line_parts)
@@ -93,8 +96,6 @@ def main():
     for gear in gear_dict:
         if len(gear_dict[gear]) == 2:
             part2 += gear_dict[gear][0] * gear_dict[gear][1]
-        if len(gear_dict[gear]) < 2:
-            logger.debug("found3 %s", gear_dict[gear])
     logger.info("part2 %s", part2)
     # 80071063 too low
 
