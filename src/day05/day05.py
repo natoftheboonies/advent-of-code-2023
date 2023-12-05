@@ -18,7 +18,7 @@ DAY = 5
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -29,10 +29,11 @@ except ValueError as e:
 def map_seed_ranges(seed_ranges, current_map):
     output_ranges = []
     for start, end in seed_ranges:
+        logger.debug("input: %s", (start, end))
         for dest, source, length in current_map:
             source_end = source + length
             # fully contained
-            if start >= source and start <= source_end:
+            if start >= source and end <= source_end:
                 new_start = dest + start - source
                 new_end = dest + end - source
                 logger.debug(
@@ -43,7 +44,9 @@ def map_seed_ranges(seed_ranges, current_map):
             # partially_contained
             elif start < source and end > source:
                 logger.debug(
-                    "partial transformation, low %s -> %s", (start, end), (dest, source)
+                    "partial transformation, low %s -> %s",
+                    (start, end),
+                    (source, source_end),
                 )
                 logger.debug("dest, source, length: %s", (dest, source, length))
                 # extract off the matching part, but continue
@@ -56,7 +59,7 @@ def map_seed_ranges(seed_ranges, current_map):
                 new_start = dest  # + match_start - source
                 new_end = dest + match_end - source
                 logger.debug(
-                    "partial transformation, low %s -> %s",
+                    "transformed %s -> %s",
                     (start, end),
                     (new_start, new_end),
                 )
@@ -64,7 +67,12 @@ def map_seed_ranges(seed_ranges, current_map):
                 start = sub_start
                 end = sub_end
             elif start < source_end and end > source_end:
-                logger.debug("partial transformation, high")
+                logger.debug(
+                    "partial transformation, high %s -> %s",
+                    (start, end),
+                    (source, source_end),
+                )
+                logger.debug("dest, source, length: %s", (dest, source, length))
                 # extract off the matching part, but continue
                 # (8, 12) & (5, 10) => (8, 10) & (10, 12)
                 # st, en & so, se => st, se & se, en
@@ -75,11 +83,12 @@ def map_seed_ranges(seed_ranges, current_map):
                 new_start = dest + match_start - source
                 new_end = dest + match_end - source
                 logger.debug(
-                    "partial transformation, low %s -> %s",
+                    "transformed %s -> %s",
                     (start, end),
                     (new_start, new_end),
                 )
                 output_ranges.append((new_start, new_end))
+                # retain rest of range for further matching
                 start = sub_start
                 end = sub_end
         else:
@@ -92,7 +101,7 @@ def map_seed_ranges(seed_ranges, current_map):
 
 def main():
     puzzle = locations.input_file
-    puzzle = locations.sample_input_file
+    # puzzle = locations.sample_input_file
     with open(puzzle, mode="rt") as f:
         data = f.read().splitlines()
 
@@ -127,6 +136,7 @@ def main():
                     seed_ids.append(dest + last - source)
                     break
             else:
+                # did not map, pass through
                 seed_ids.append(last)
         logger.debug(seed_ids)
         minimum_location = min(minimum_location, seed_ids[-1])
@@ -142,6 +152,7 @@ def main():
 
     logger.debug("seed ranges: %s", seed_ranges)  # >= a and < b
     for map in map_sequence:
+        logger.debug(map)
         seed_ranges = map_seed_ranges(seed_ranges, maps[map])
 
     logger.debug(seed_ranges)
