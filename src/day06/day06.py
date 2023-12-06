@@ -2,11 +2,11 @@
 Author: Nat with Darren's Template
 Date: 2023-12-06
 
-Solving https://adventofcode.com/2023/day/1
+Solving https://adventofcode.com/2023/day/6
 
 Part 1:
 
-Part 2:
+Part 2: binary search
 
 """
 import logging
