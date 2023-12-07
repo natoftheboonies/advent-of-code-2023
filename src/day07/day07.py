@@ -74,11 +74,19 @@ def upgrade(hand):
     if "J" not in unique_cards:
         return hand
     if len(unique_cards) == 5:
-        return hand.replace("J", "A")
+        # make a pair
+        scores = [part_two_types.index(card) for card in cards]
+        max_score = max(scores)
+        pair_card = cards[scores.index(max_score)]
+        logger.debug("pair_card: %s", pair_card)
+        return hand.replace("J", pair_card)
     if len(unique_cards) == 4:
-        # one pair, if pair is J, upgrade to A
+        # one pair, if pair is J, upgrade to highest other card
         if cards.count("J") == 2:
-            return hand.replace("J", "A")
+            scores = [part_two_types.index(card) for card in cards]
+            max_score = max(scores)
+            pair_card = cards[scores.index(max_score)]
+            return hand.replace("J", pair_card)
         # upgrade to three of a kind
         pair_card = None
         for card in unique_cards:
@@ -97,9 +105,12 @@ def upgrade(hand):
                 three_card = card
                 break
         if three_of_a_kind:
-            # if three card is J, upgrade to A
+            # if three card is J, upgrade to max other card
             if three_card == "J":
-                return hand.replace("J", "A")
+                scores = [part_two_types.index(card) for card in cards]
+                max_score = max(scores)
+                other_card = cards[scores.index(max_score)]
+                return hand.replace("J", other_card)
             return hand.replace("J", three_card)
         # else two pair
         pair_cards = []
@@ -173,22 +184,24 @@ def main():
     # Part 2
     sort_me = []
     for hand in data:
-        logger.debug(hand)
+        # logger.debug(hand)
         cards, wager = hand.split()
         wager = int(wager)
         upgraded = upgrade(cards)
-        logger.debug(upgraded)
+        if upgraded != cards:
+            logger.debug("upgraded %s to %s", cards, upgraded)
         card_values = [part_two_types.index(card) for card in cards]
         sort_me.append((score(upgraded), *card_values, cards, upgraded, wager))
     sort_me.sort()
-    logger.debug(sort_me)
+    # logger.debug(sort_me)
     product = 0
     for i, hand in enumerate(sort_me):
-        logger.debug(hand)
+        # logger.debug(hand)
         product += hand[-1] * (i + 1)
     logger.info("Part 2: %d", product)
     # 253091321 too low
     # 253221750 too low
+    # 253372014 too low
 
 
 if __name__ == "__main__":
