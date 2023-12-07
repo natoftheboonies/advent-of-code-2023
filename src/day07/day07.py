@@ -2,11 +2,11 @@
 Author: Nat with Darren's Template
 Date: 2023-12-07
 
-Solving https://adventofcode.com/2023/day/1
+Solving https://adventofcode.com/2023/day/7
 
-Part 1:
+Part 1: Sort poker-ish hands
 
-Part 2:
+Part 2: Jokers are wild
 
 """
 import logging
@@ -33,6 +33,7 @@ part_two_types.remove("J")
 part_two_types.insert(0, "J")
 
 
+# collections.Counter does this a lot more efficiently :)
 def score(hand):
     cards = list(hand)
     unique_cards = set(cards)
