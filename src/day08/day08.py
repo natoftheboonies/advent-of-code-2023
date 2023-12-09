@@ -116,16 +116,6 @@ def main():
     logger.info("Part 2: %d", lcm)
 
 
-def gcd(a, b):
-    while b:
-        a, b = b, a % b
-    return a
-
-
-def lcm(a, b):
-    return (a * b) // gcd(a, b)
-
-
 if __name__ == "__main__":
     t1 = time.perf_counter()
     main()
