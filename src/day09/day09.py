@@ -3,6 +3,7 @@ Author: Nat with Darren's Template
 Date: 2023-12-09
 
 Solving https://adventofcode.com/2023/day/9
+go learn math: https://www.youtube.com/watch?v=4AuV93LOPcE
 
 Part 1:
 
@@ -26,35 +27,19 @@ except ValueError as e:
     logger.error(e)
 
 
-def part1(sequence):
+def expand(sequence):
     next = []
     i = 1
     while i < len(sequence):
         next.append(sequence[i] - sequence[i - 1])
         i += 1
     logger.debug(next)
-    if all(x == 0 for x in next):
-        logger.debug("base: %d", sequence[-1])
-        return sequence[-1]  # same for part 2
-    result = sequence[-1] + part1(next)
+    if all(x == 0 for x in next):  # base case
+        return sequence[0], sequence[-1]
 
-    logger.debug("next: %d", result)
-    return result
-
-
-def part2(sequence):
-    next = []
-    i = 1
-    while i < len(sequence):
-        next.append(sequence[i] - sequence[i - 1])
-        i += 1
-    logger.debug(next)
-    if all(x == 0 for x in next):
-        logger.debug("base: %d", sequence[0])
-        return sequence[0]
-    result = sequence[0] - part2(next)
-    logger.debug("next: %d", result)
-    return result
+    left, right = expand(next)
+    logger.debug("next: %d, %d", left, right)
+    return sequence[0] - left, sequence[-1] + right
 
 
 def main():
@@ -63,22 +48,18 @@ def main():
     with open(puzzle, mode="rt") as f:
         data = f.read().splitlines()
 
-    sum_results = 0
+    sum_left, sum_right = 0, 0
 
     logger.debug(data)
     for line in data:
         sequence = list(map(int, line.split()))
         logger.debug(sequence)
-        sum_results += part1(sequence)
+        left, right = expand(sequence)
+        sum_left += left
+        sum_right += right
 
-    logger.info("Part 1: %d", sum_results)
-    sum_results = 0
-    for line in data:
-        sequence = list(map(int, line.split()))
-        logger.debug(sequence)
-        sum_results += part2(sequence)
-
-    logger.info("Part 2: %d", sum_results)
+    logger.info("Part 1: %d", sum_right)
+    logger.info("Part 2: %d", sum_left)
 
 
 if __name__ == "__main__":
