@@ -4,9 +4,9 @@ Date: 2023-12-10
 
 Solving https://adventofcode.com/2023/day/10
 
-Part 1:
+Part 1: explore a pipe maze
 
-Part 2:
+Part 2: count points inside a pipe loop
 
 """
 import logging
@@ -19,7 +19,7 @@ DAY = 10
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -118,6 +118,7 @@ def main():
     # count |, L, and J as vertical pipes, but not F or 7 (or -)
     # even number of vertical pipes means we are outside the loop
     # thanks https://www.reddit.com/r/adventofcode/comments/18evyu9/comment/kcrpt5d/?context=3
+    # ah, this is ray casting algorithm
     inside_points = set()
     for y in range(len(data)):
         outside = True
@@ -125,13 +126,13 @@ def main():
         for x in range(len(data[0])):
             loc = ac.Point(x, y)
             if loc in loop_points:
-                if data[y][x] in "|LJ":
+                if maze[loc] in "|LJ":
                     # crossing loop
                     outside = not outside
-                print_me += data[y][x]
+                print_me += maze[loc]
             elif not outside:
-                if y > 20:
-                    inside_points.add(loc)
+                # if y > 20: # shouldn't need this... oooh it's the start point!!!
+                inside_points.add(loc)
                 print_me += Fore.GREEN + "I" + Fore.BLUE
             else:
                 print_me += "."
