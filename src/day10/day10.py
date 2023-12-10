@@ -12,7 +12,7 @@ Part 2:
 import logging
 import time
 import aoc_common.aoc_commons as ac
-from collections import defaultdict
+from colorama import Fore
 
 YEAR = 2023
 DAY = 10
@@ -49,7 +49,7 @@ def main():
     with open(puzzle, mode="rt") as f:
         data = f.read().splitlines()
 
-    logger.debug(data)
+    # logger.debug(data)
     maze = {}
     start = None
     for y, line in enumerate(data):
@@ -58,7 +58,7 @@ def main():
                 maze[ac.Point(x, y)] = c
             if c == "S":
                 start = ac.Point(x, y)
-    logger.debug(start)
+    logger.debug("start %s", start)
     # which directions have pipes entering start?
     valid = []
     # check E
@@ -81,7 +81,7 @@ def main():
     valid_pipes = [
         pipe for pipe in pipes if pipes[pipe][0] in valid and pipes[pipe][1] in valid
     ]
-    logger.debug(valid_pipes)
+    assert len(valid_pipes) == 1
     start_pipe = valid_pipes[0]
     maze[start] = start_pipe
     # let's explore!
@@ -89,17 +89,21 @@ def main():
     current = start
     # pick a direction
 
+    loop_points = set()
+    loop_points.add(start)
+
     last_direction = pipes[maze[current]][0]
-    logger.debug("starting %s", last_direction)
+    logger.debug("heading %s", last_direction)
     while True:
         current = current + last_direction
+        loop_points.add(current)
         count += 1
         if current == start:
             break
         if current not in maze:
             logger.error("off map?! %s", current)
             return
-        logger.debug("moved %s to %s", last_direction, current)
+        # logger.debug("moved %s to %s", last_direction, current)
         exits = [
             exit for exit in pipes[maze[current]] if exit != opposite[last_direction]
         ]
@@ -107,7 +111,34 @@ def main():
             logger.error("too many exits %s", current)
             return
         last_direction = exits[0]
-    logger.info("Part 1: %d", count / 2)
+    logger.info("Part 1: %d", len(loop_points) / 2)
+    # Part 2
+    # which positions are inside the loop?
+    # looking horizontally, crossing a vertical pipe means we are inside the loop
+    # count |, L, and J as vertical pipes, but not F or 7 (or -)
+    # even number of vertical pipes means we are outside the loop
+    # thanks https://www.reddit.com/r/adventofcode/comments/18evyu9/comment/kcrpt5d/?context=3
+    inside_points = set()
+    for y in range(len(data)):
+        outside = True
+        print_me = ""
+        for x in range(len(data[0])):
+            loc = ac.Point(x, y)
+            if loc in loop_points:
+                if data[y][x] in "|LJ":
+                    # crossing loop
+                    outside = not outside
+                print_me += data[y][x]
+            elif not outside:
+                if y > 20:
+                    inside_points.add(loc)
+                print_me += Fore.GREEN + "I" + Fore.BLUE
+            else:
+                print_me += "."
+        logger.debug(print_me)
+
+    logger.info("Part 2: %d", len(inside_points))
+    # 394 too high
 
 
 if __name__ == "__main__":
