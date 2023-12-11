@@ -18,7 +18,7 @@ DAY = 11
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -32,7 +32,7 @@ def main():
     with open(puzzle, mode="rt") as f:
         data = f.read().splitlines()
 
-    logger.debug(data)
+    # logger.debug(data)
     galaxies = []
     for y, row in enumerate(data):
         for x, col in enumerate(row):
@@ -54,24 +54,22 @@ def main():
     logger.debug("expand x %s", expand_x)
     logger.debug("expand y %s", expand_y)
     # compare pairs of galaxies, ignoring order
-    sum_dist = 0
-    count = 0
+    sum_part1 = 0
+    sum_part2 = 0
     for i in range(len(galaxies)):
         x1, y1 = galaxies[i]
         for j in range(i + 1, len(galaxies)):
             x2, y2 = galaxies[j]
             dist = abs(x1 - x2) + abs(y1 - y2)
-            dist += sum(
-                list(1e6 - 1 for x in expand_x if min(x1, x2) < x < max(x1, x2))
-            )
-            dist += sum(
-                list(1e6 - 1 for y in expand_y if min(y1, y2) < y < max(y1, y2))
-            )
+            sum_part1 += dist
+            sum_part2 += dist
+            sum_part1 += sum(1 for x in expand_x if min(x1, x2) < x < max(x1, x2))
+            sum_part2 += sum(1e6 - 1 for x in expand_x if min(x1, x2) < x < max(x1, x2))
+            sum_part1 += sum(1 for y in expand_y if min(y1, y2) < y < max(y1, y2))
+            sum_part2 += sum(1e6 - 1 for y in expand_y if min(y1, y2) < y < max(y1, y2))
             # logger.debug("dist %s: %d", (i + 1, j + 1), dist)
-            sum_dist += dist
-            count += 1
-    logger.debug("Part 1 %d", sum_dist)
-    logger.debug("count %d", count)
+    logger.info("Part 1 %d", sum_part1)
+    logger.info("Part 2 %d", sum_part2)
 
 
 if __name__ == "__main__":
