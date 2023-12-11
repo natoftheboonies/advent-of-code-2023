@@ -61,9 +61,13 @@ def main():
         for j in range(i + 1, len(galaxies)):
             x2, y2 = galaxies[j]
             dist = abs(x1 - x2) + abs(y1 - y2)
-            dist += len(list(1 for x in expand_x if min(x1, x2) < x < max(x1, x2)))
-            dist += len(list(1 for y in expand_y if min(y1, y2) < y < max(y1, y2)))
-            logger.debug("dist %s: %d", (i + 1, j + 1), dist)
+            dist += sum(
+                list(1e6 - 1 for x in expand_x if min(x1, x2) < x < max(x1, x2))
+            )
+            dist += sum(
+                list(1e6 - 1 for y in expand_y if min(y1, y2) < y < max(y1, y2))
+            )
+            # logger.debug("dist %s: %d", (i + 1, j + 1), dist)
             sum_dist += dist
             count += 1
     logger.debug("Part 1 %d", sum_dist)
