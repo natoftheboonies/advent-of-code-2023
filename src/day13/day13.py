@@ -26,7 +26,13 @@ except ValueError as e:
     logger.error(e)
 
 
-def reflected(sequence):
+def reflected(image):
+    sequence = []
+    for row in image:
+        row = "".join(row).replace(".", "0").replace("#", "1")
+        # to decimal
+        row = int(row, 2)
+        sequence.append(row)
     for i, n in enumerate(sequence):
         # logger.debug("i: %s, n: %s", i, n)
         if i == 0:
@@ -41,43 +47,41 @@ def reflected(sequence):
                 if sequence[j] != sequence[k]:
                     break
             else:
-                logger.debug("is reflected")
                 return i
     return -1
 
 
 def analyze(image):
-    logger.debug("image")
-    vertical = []
-    for row in image:
-        logger.debug(row)
-        # convert to binary
-        row = row.replace(".", "0").replace("#", "1")
-        # to decimal
-        row = int(row, 2)
-        vertical.append(row)
-    logger.debug(vertical)
     # look for reflected sequence
-    v = reflected(vertical)
+    v = reflected(image)
     if v > 0:
         return 100 * v
-
-    horizontal = []
-    logger.debug("horizontal")
     rotated = list(zip(*image[::-1]))
-    for row in rotated:
-        row = "".join(row).replace(".", "0").replace("#", "1")
-        row = int(row, 2)
-        horizontal.append(row)
-    h = reflected(horizontal)
+    h = reflected(rotated)
     if h > 0:
         return h
     logger.warn("no reflection found")
 
 
+from copy import deepcopy
+
+
+def part2(image):
+    part1 = analyze(image)
+    grid = [[c for c in row] for row in image]
+    for y in range(len(grid)):
+        for x in range(len(grid[y])):
+            test_image = deepcopy(grid)
+            test_image[y][x] = "." if grid[y][x] == "#" else "#"
+            part2 = analyze(test_image)
+            if part2 and part2 != part1:
+                logger.debug("found smudge at %d, %d: %d", x, y, part2)
+                return part2
+
+
 def main():
     puzzle = locations.input_file
-    # puzzle = locations.sample_input_file
+    puzzle = locations.sample_input_file
     with open(puzzle, mode="rt") as f:
         data = [image.split() for image in f.read().split("\n\n")]
     logger.debug(data)
@@ -85,6 +89,12 @@ def main():
     for image in data:
         summarized += analyze(image)
     logger.info("Part 1: %d", summarized)
+
+    # part2 smudges?!
+    summarized = 0
+    for image in data:
+        summarized += part2(image)
+    logger.info("Part 2: %d", summarized)
 
 
 if __name__ == "__main__":
