@@ -18,7 +18,7 @@ DAY = 13
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -51,37 +51,52 @@ def reflected(image):
     return -1
 
 
+def score2(image):
+    for axis in range(1, len(image)):
+        above = reversed(image[:axis])
+        below = image[axis:]
+        smudges = 0
+        for a_row, b_row in zip(above, below):
+            for p1, p2 in zip(a_row, b_row):
+                if p1 != p2:
+                    smudges += 1
+            if smudges > 1:
+                break
+        if smudges == 1:
+            logger.debug("found axis %d", axis)
+            return axis
+
+    return -1
+
+
 def analyze(image):
     # look for reflected sequence
     v = reflected(image)
     if v > 0:
         return 100 * v
-    rotated = list(zip(*image[::-1]))
+    rotated = list(zip(*image))
     h = reflected(rotated)
     if h > 0:
         return h
-    logger.warn("no reflection found")
-
-
-from copy import deepcopy
+    logger.warning("no reflection found")
 
 
 def part2(image):
-    part1 = analyze(image)
-    grid = [[c for c in row] for row in image]
-    for y in range(len(grid)):
-        for x in range(len(grid[y])):
-            test_image = deepcopy(grid)
-            test_image[y][x] = "." if grid[y][x] == "#" else "#"
-            part2 = analyze(test_image)
-            if part2 and part2 != part1:
-                logger.debug("found smudge at %d, %d: %d", x, y, part2)
-                return part2
+    logger.debug("try vertical")
+    v = score2(image)
+    if v > 0:
+        return 100 * v
+    logger.debug("try horizontal")
+    rotated = list(zip(*image))
+    h = score2(rotated)
+    if h > 0:
+        return h
+    logger.warning("no reflection found")
 
 
 def main():
     puzzle = locations.input_file
-    puzzle = locations.sample_input_file
+    # puzzle = locations.sample_input_file
     with open(puzzle, mode="rt") as f:
         data = [image.split() for image in f.read().split("\n\n")]
     logger.debug(data)
