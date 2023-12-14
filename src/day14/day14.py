@@ -28,10 +28,28 @@ except ValueError as e:
 
 def tilt_north(data):
     for y, row in enumerate(data):
-        for x, col in enumerate(row):
-            if col == ".":
+        for x, c in enumerate(row):
+            if c == ".":
                 # look for a round below
                 for i in range(y + 1, len(data)):
+                    if data[i][x] == ".":
+                        continue
+                    else:
+                        if data[i][x] == "O":
+                            data[y][x] = data[i][x]
+                            data[i][x] = "."
+                        else:
+                            assert data[i][x] == "#"
+                        break
+    return data
+
+
+def tilt_south(data):
+    for y in range(len(data) - 1, 0, -1):
+        for x, c in enumerate(data[y]):
+            if c == ".":
+                # look for a round above
+                for i in range(y - 1, -1, -1):
                     if data[i][x] == ".":
                         continue
                     else:
@@ -45,37 +63,39 @@ def tilt_north(data):
 
 
 def tilt_east(data):  # right
-    for x in range(len(data[0]), 0, -1):
-        for y, c in enumerate(data):
+    for x in range(len(data[0]) - 1, 0, -1):
+        for y in range(len(data)):
+            c = data[y][x]
             if c == ".":
                 # look for a round west
-                for i in range(x - 1, 0, -1):
-                    if data[i][x] == ".":
+                for i in range(x - 1, -1, -1):
+                    if data[y][i] == ".":
                         continue
                     else:
-                        if data[i][x] == "O":
-                            data[y][x] = data[i][x]
-                            data[i][x] = "."
+                        if data[y][i] == "O":
+                            data[y][x] = data[y][i]
+                            data[y][i] = "."
                         else:
-                            assert data[i][x] == "#"
+                            assert data[y][i] == "#"
                         break
     return data
 
 
 def tilt_west(data):  # left
     for x in range(len(data[0])):
-        for y, c in enumerate(data):
+        for y in range(len(data)):
+            c = data[y][x]
             if c == ".":
-                # look for a round west
+                # look for a round east
                 for i in range(x + 1, len(data[0])):
-                    if data[i][x] == ".":
+                    if data[y][i] == ".":
                         continue
                     else:
-                        if data[i][x] == "O":
-                            data[y][x] = data[i][x]
-                            data[i][x] = "."
+                        if data[y][i] == "O":
+                            data[y][x] = data[y][i]
+                            data[y][i] = "."
                         else:
-                            assert data[i][x] == "#"
+                            assert data[y][i] == "#"
                         break
     return data
 
@@ -88,26 +108,44 @@ def main():
 
     logger.debug(data)
     platform_sum = 0
+    data = tilt_north(data)
+    logger.info("north")
+    for row in data:
+        logger.debug("".join(row))
+
     for y, row in enumerate(data):
         for x, col in enumerate(row):
             if col == "O":
                 platform_sum += len(data) - y
-            if col == ".":
-                # look for a round below
-                for i in range(y + 1, len(data)):
-                    if data[i][x] == ".":
-                        continue
-                    else:
-                        if data[i][x] == "O":
-                            data[y][x] = data[i][x]
-                            data[i][x] = "."
-                            platform_sum += len(data) - y
-                        else:
-                            assert data[i][x] == "#"
-                        break
-    for row in data:
-        logger.debug("".join(row))
+
     logger.info("Part 1: %s", platform_sum)
+    total_cycles = 1000000000
+    cycle_history = []
+    for cycle in range(1, 201):
+        data = tilt_west(data)
+
+        data = tilt_south(data)
+
+        data = tilt_east(data)
+
+        platform_sum = 0
+        for y, row in enumerate(data):
+            for x, col in enumerate(row):
+                if col == "O":
+                    platform_sum += len(data) - y
+        cycle_history.append(platform_sum)
+        if platform_sum == 102837:
+            logger.debug("cycle 102837 %d", cycle)
+        data = tilt_north(data)
+    logger.debug("history: %s", cycle_history)
+    n = 93
+    while n < total_cycles:
+        n += 7
+    logger.debug(n)
+
+    cycle_length = 7
+    hmm = (total_cycles - 2) % cycle_length
+    logger.debug("hmm %d", hmm)
 
 
 if __name__ == "__main__":
