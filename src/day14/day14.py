@@ -119,7 +119,7 @@ def main():
                 platform_sum += len(data) - y
 
     logger.info("Part 1: %s", platform_sum)
-    total_cycles = 1000000000
+    total_cycles = 000000000
     cycle_history = []
     for cycle in range(1, 201):
         data = tilt_west(data)
@@ -138,14 +138,9 @@ def main():
             logger.debug("cycle 102837 %d", cycle)
         data = tilt_north(data)
     logger.debug("history: %s", cycle_history)
-    n = 93
-    while n < total_cycles:
-        n += 7
-    logger.debug(n)
-
-    cycle_length = 7
-    hmm = (total_cycles - 2) % cycle_length
-    logger.debug("hmm %d", hmm)
+    index = (total_cycles - 93) % 7
+    logger.info("Part 2: %d", cycle_history[93 + index - 2])
+    part2 = 102829
 
 
 if __name__ == "__main__":
