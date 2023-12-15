@@ -18,7 +18,7 @@ DAY = 14
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -109,12 +109,11 @@ def main():
     logger.debug(data)
     platform_sum = 0
     data = tilt_north(data)
-    logger.info("north")
     for row in data:
         logger.debug("".join(row))
 
     for y, row in enumerate(data):
-        for x, col in enumerate(row):
+        for _, col in enumerate(row):
             if col == "O":
                 platform_sum += len(data) - y
 
