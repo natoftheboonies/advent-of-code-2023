@@ -119,28 +119,38 @@ def main():
                 platform_sum += len(data) - y
 
     logger.info("Part 1: %s", platform_sum)
-    total_cycles = 000000000
-    cycle_history = []
-    for cycle in range(1, 201):
+    cycle = 0
+    total_cycles = int(1e9)
+    cycle_history = {}
+    detected_cycle = False
+    while cycle < total_cycles:
         data = tilt_west(data)
-
         data = tilt_south(data)
-
         data = tilt_east(data)
+        cycle += 1
 
         platform_sum = 0
         for y, row in enumerate(data):
-            for x, col in enumerate(row):
+            for _, col in enumerate(row):
                 if col == "O":
                     platform_sum += len(data) - y
-        cycle_history.append(platform_sum)
-        if platform_sum == 102837:
-            logger.debug("cycle 102837 %d", cycle)
+        logger.debug("cycle %d %d", cycle, platform_sum)
+
+        # cycle detection
+        state = "".join(["".join(row) for row in data])
+        if not detected_cycle and state in cycle_history:
+            detected_cycle = True
+            cycle_length = cycle - cycle_history[state]
+            logger.debug("cycle length %d", cycle_length)
+            # skip until just before end
+            skip_ahead = (total_cycles - cycle) // cycle_length * cycle_length
+            cycle += skip_ahead
+            logger.debug("skipping %d cycles until %d", skip_ahead, cycle)
+
+        cycle_history[state] = cycle
         data = tilt_north(data)
-    logger.debug("history: %s", cycle_history)
-    index = (total_cycles - 93) % 7
-    logger.info("Part 2: %d", cycle_history[93 + index - 2])
-    part2 = 102829
+
+    logger.info("Part 2: %d", platform_sum)
 
 
 if __name__ == "__main__":
