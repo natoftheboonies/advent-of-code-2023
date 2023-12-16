@@ -19,7 +19,7 @@ DAY = 16
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -53,20 +53,15 @@ class Heading(Enum):
         return self.name
 
 
-def main():
-    puzzle = locations.input_file
-    # puzzle = locations.sample_input_file
-    with open(puzzle, mode="rt") as f:
-        data = [list(data.strip()) for data in f.read().splitlines()]
+def explore(data, start=(0, 0, Heading.E)):
     rows = len(data)
     cols = len(data[0])
-    logger.debug(f"rows: {rows}, cols: {cols}")
     queue = []
     visited = set()
-    queue.append((0, 0, Heading.E))
+    queue.append(start)
     while queue:
         x, y, heading = queue.pop(0)
-        logger.debug(f"({x},{y}) {heading}")
+        # logger.debug(f"({x},{y}) {heading}")
         if (x, y, heading) in visited or x < 0 or x >= cols or y < 0 or y >= rows:
             continue
         visited.add((x, y, heading))
@@ -98,7 +93,35 @@ def main():
     unique_locations = set()
     for x, y, _ in visited:
         unique_locations.add((x, y))
-    logger.info(f"Visited: {len(unique_locations)}")
+    return len(unique_locations)
+
+
+def main():
+    puzzle = locations.input_file
+    # puzzle = locations.sample_input_file
+    with open(puzzle, mode="rt") as f:
+        data = [list(data.strip()) for data in f.read().splitlines()]
+
+    logger.info("Part 1: %d", explore(data))
+
+    # Part 2
+    max_energy = 0
+    for row in range(len(data)):
+        # enter left and right
+        for heading in (Heading.E, Heading.W):
+            x = 0 if heading == Heading.E else len(data[0]) - 1
+            energy = explore(data, (x, row, heading))
+            if energy > max_energy:
+                max_energy = energy
+
+    for col in range(len(data[0])):
+        # enter top and bottom
+        for heading in (Heading.N, Heading.S):
+            y = 0 if heading == Heading.S else len(data) - 1
+            energy = explore(data, (col, y, heading))
+            if energy > max_energy:
+                max_energy = energy
+    logger.info("Part 2: %d", max_energy)
 
 
 def print_map():
