@@ -66,7 +66,7 @@ def explore(data, start=(0, 0, Heading.E)):
             continue
         visited.add((x, y, heading))
         if data[y][x] in "\/":
-            logger.debug(f"Found curve {data[y][x]} at ({x},{y})")
+            # logger.debug(f"Found curve {data[y][x]} at ({x},{y})")
             if heading in (Heading.N, Heading.S):
                 now_heading = (
                     heading.turn_right() if data[y][x] == "/" else heading.turn_left()
@@ -77,11 +77,11 @@ def explore(data, start=(0, 0, Heading.E)):
                 )
             queue.append((now_heading.move(x, y)))
         elif data[y][x] == "|" and heading in (Heading.E, Heading.W):
-            logger.debug(f"Splitting {data[y][x]} at ({x},{y})")
+            # logger.debug(f"Splitting {data[y][x]} at ({x},{y})")
             queue.append((Heading.N.move(x, y)))
             queue.append((Heading.S.move(x, y)))
         elif data[y][x] == "-" and heading in (Heading.N, Heading.S):
-            logger.debug(f"Splitting {data[y][x]} at ({x},{y})")
+            # logger.debug(f"Splitting {data[y][x]} at ({x},{y})")
             queue.append((Heading.E.move(x, y)))
             queue.append((Heading.W.move(x, y)))
         else:
@@ -111,7 +111,9 @@ def main():
         for heading in (Heading.E, Heading.W):
             x = 0 if heading == Heading.E else len(data[0]) - 1
             energy = explore(data, (x, row, heading))
+
             if energy > max_energy:
+                logger.debug(f"Energy {x},{row},{heading}: {energy}")
                 max_energy = energy
 
     for col in range(len(data[0])):
@@ -119,19 +121,11 @@ def main():
         for heading in (Heading.N, Heading.S):
             y = 0 if heading == Heading.S else len(data) - 1
             energy = explore(data, (col, y, heading))
+
             if energy > max_energy:
+                logger.debug(f"Energy {x},{row},{heading}: {energy}")
                 max_energy = energy
     logger.info("Part 2: %d", max_energy)
-
-
-def print_map():
-    for y in range(rows):
-        for x in range(cols):
-            if any((x, y, _) in visited for _ in Heading):
-                print("#", end="")
-            else:
-                print(data[y][x], end="")
-        print()
 
 
 if __name__ == "__main__":
