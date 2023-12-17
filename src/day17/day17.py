@@ -76,16 +76,18 @@ class Heading(Enum):
         return self.name
 
 
-def explore(data, next_func):
+def explore(data, next_func, min_count=1):
     # state is position, heading, heat
     # never need to re-visit a position? of course we do.
     # we need to re-visit a position if we can get there with a lower heat
     # or fewer turns
     visited = dict()  # (x, y, heading, count) -> heat
     # heat, x, y, heading, count
-    pos = (0, 0, 0, Heading.E, 0)
     queue = []
-    queue.append(pos)
+    # aha!  need to start both directions for part 2
+    # because of "min count to turn" rule.
+    queue.append((data[0][1], 1, 0, Heading.E, 1))
+    queue.append((data[1][0], 0, 1, Heading.S, 1))
     goal = (len(data[0]) - 1, len(data) - 1)
     min_heat = 10**10
 
@@ -97,7 +99,7 @@ def explore(data, next_func):
         ] <= heat:
             continue
         visited[(x, y, heading, count)] = heat
-        if (x, y) == goal:  # and count >= 4 ? why not?
+        if (x, y) == goal and count >= min_count:
             logger.debug(f"Found goal at ({x},{y},{count}) with heat {heat}")
             # return heat
             min_heat = min(min_heat, heat)
@@ -123,7 +125,7 @@ def main():
     min_heat = explore(data, Heading.valid_next)
     logger.info("Part 1: %d", min_heat)
 
-    min_heat = explore(data, Heading.valid_next_part2)
+    min_heat = explore(data, Heading.valid_next_part2, 4)
     logger.info("Part 2: %d", min_heat)
 
 
