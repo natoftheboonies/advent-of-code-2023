@@ -20,7 +20,7 @@ DAY = 17
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -76,15 +76,7 @@ class Heading(Enum):
         return self.name
 
 
-def main():
-    puzzle = locations.input_file
-    # puzzle = locations.sample_input_file
-    with open(puzzle, mode="rt") as f:
-        # data = [list(map(int, list(line))) for line in f.read().splitlines()]
-        data = [[int(n) for n in list(line)] for line in f.read().splitlines()]
-
-    logger.debug(ac.top_and_tail(data))
-
+def explore(data, next_func):
     # state is position, heading, heat
     # never need to re-visit a position? of course we do.
     # we need to re-visit a position if we can get there with a lower heat
@@ -100,29 +92,39 @@ def main():
     while queue:
         heat, x, y, heading, count = heapq.heappop(queue)
         # logger.debug(f"({x},{y}) {heading}")
-        if x < 0 or x >= len(data[0]) or y < 0 or y >= len(data):
-            continue
-        if (
-            x,
-            y,
-            heading,
-            count,
-        ) in visited and visited[(x, y, heading, count)] <= heat:
+        if (x, y, heading, count) in visited and visited[
+            (x, y, heading, count)
+        ] <= heat:
             continue
         visited[(x, y, heading, count)] = heat
-        if (x, y) == goal:
-            logger.info(f"Found goal at ({x},{y}) with heat {heat}")
+        if (x, y) == goal:  # and count >= 4 ? why not?
+            logger.debug(f"Found goal at ({x},{y},{count}) with heat {heat}")
+            # return heat
             min_heat = min(min_heat, heat)
-        for h in heading.valid_next_part2(count):
+        for h in next_func(heading, count):
             nx, ny, _ = h.move(x, y)
             if nx < 0 or nx >= len(data[0]) or ny < 0 or ny >= len(data):
                 continue
             new_heat = heat + data[ny][nx]
-            if h == heading:
-                heapq.heappush(queue, (new_heat, nx, ny, h, count + 1))
-            else:
-                heapq.heappush(queue, (new_heat, nx, ny, h, 1))
-    logger.debug("Part 1: %d", min_heat)
+            heapq.heappush(
+                queue, (new_heat, nx, ny, h, count + 1 if h == heading else 1)
+            )
+    return min_heat
+
+
+def main():
+    puzzle = locations.input_file
+    # puzzle = locations.sample_input_file
+    with open(puzzle, mode="rt") as f:
+        data = [[int(n) for n in list(line)] for line in f.read().splitlines()]
+
+    logger.debug(ac.top_and_tail(data))
+
+    min_heat = explore(data, Heading.valid_next)
+    logger.info("Part 1: %d", min_heat)
+
+    min_heat = explore(data, Heading.valid_next_part2)
+    logger.info("Part 2: %d", min_heat)
 
 
 if __name__ == "__main__":
