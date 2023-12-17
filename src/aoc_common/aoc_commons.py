@@ -298,6 +298,18 @@ class Point:
     def __sub__(self, other: Point):
         return self + Point(-other.x, -other.y)
 
+    def __lt__(self,other): 
+            return self.x < other.x and self.y < other.y
+
+    def __le__(self,other): 
+            return self.x <= other.x and self.y <= other.y
+    
+    def __gt__(self,other):
+            return self.x > other.x and self.y > other.y
+    
+    def __ge__(self,other):
+            return self.x >= other.x and self.y >= other.y
+
     def yield_neighbours(self, include_diagonals=True, include_self=False):
         """Generator to yield neighbouring Points"""
 

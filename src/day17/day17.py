@@ -13,6 +13,7 @@ from enum import Enum
 import logging
 import time
 import aoc_common.aoc_commons as ac
+import heapq
 
 YEAR = 2023
 DAY = 17
@@ -48,6 +49,18 @@ class Heading(Enum):
         assert count < 3
         return [self, self.turn_left(), self.turn_right()]
 
+    def __lt__(self, other):
+        return self.value < other.value
+
+    def __le__(self, other):
+        return self.value <= other.value
+
+    def __gt__(self, other):
+        return self.value > other.value
+
+    def __ge__(self, other):
+        return self.value >= other.value
+
     def __str__(self):
         return self.name
 
@@ -57,7 +70,7 @@ class Heading(Enum):
 
 def main():
     puzzle = locations.input_file
-    puzzle = locations.sample_input_file
+    # puzzle = locations.sample_input_file
     with open(puzzle, mode="rt") as f:
         # data = [list(map(int, list(line))) for line in f.read().splitlines()]
         data = [[int(n) for n in list(line)] for line in f.read().splitlines()]
@@ -65,31 +78,42 @@ def main():
     logger.debug(ac.top_and_tail(data))
 
     # state is position, heading, heat
-    # never need to re-visit a position? of course we do. we need to re-visit a position if we can get there with a lower heat
-    visited = dict()  # (x, y, heading) -> heat
-    # x, y, heading, count, heat
-    pos = (0, 0, Heading.E, 1, 0)
+    # never need to re-visit a position? of course we do.
+    # we need to re-visit a position if we can get there with a lower heat
+    # or fewer turns
+    visited = dict()  # (x, y, heading, count) -> heat
+    # heat, x, y, heading, count
+    pos = (0, 0, 0, Heading.E, 0)
     queue = []
     queue.append(pos)
     goal = (len(data[0]) - 1, len(data) - 1)
     min_heat = 10**10
+
     while queue:
-        x, y, heading, count, heat = queue.pop(0)
+        heat, x, y, heading, count = heapq.heappop(queue)
         # logger.debug(f"({x},{y}) {heading}")
         if x < 0 or x >= len(data[0]) or y < 0 or y >= len(data):
             continue
-        if (x, y, heading) in visited and visited.get((x, y, heading), 10**10) < heat:
+        if (
+            x,
+            y,
+            heading,
+            count,
+        ) in visited and visited[(x, y, heading, count)] <= heat:
             continue
-        visited[(x, y, heading)] = heat
+        visited[(x, y, heading, count)] = heat
         if (x, y) == goal:
             logger.info(f"Found goal at ({x},{y}) with heat {heat}")
             min_heat = min(min_heat, heat)
         for h in heading.valid_next(count):
-            dx, dy, _ = h.move(x, y)
+            nx, ny, _ = h.move(x, y)
+            if nx < 0 or nx >= len(data[0]) or ny < 0 or ny >= len(data):
+                continue
+            new_heat = heat + data[ny][nx]
             if h == heading:
-                queue.append((dx, dy, h, count + 1, heat + data[y][x]))
+                heapq.heappush(queue, (new_heat, nx, ny, h, count + 1))
             else:
-                queue.append((dx, dy, h, 1, heat + data[y][x]))
+                heapq.heappush(queue, (new_heat, nx, ny, h, 1))
     logger.debug("Part 1: %d", min_heat)
 
 
