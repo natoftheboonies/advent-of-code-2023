@@ -49,6 +49,14 @@ class Heading(Enum):
         assert count < 3
         return [self, self.turn_left(), self.turn_right()]
 
+    def valid_next_part2(self, count=0):
+        if count < 4:
+            return [self]
+        if count == 10:
+            return [self.turn_left(), self.turn_right()]
+        assert count < 10
+        return [self, self.turn_left(), self.turn_right()]
+
     def __lt__(self, other):
         return self.value < other.value
 
@@ -105,7 +113,7 @@ def main():
         if (x, y) == goal:
             logger.info(f"Found goal at ({x},{y}) with heat {heat}")
             min_heat = min(min_heat, heat)
-        for h in heading.valid_next(count):
+        for h in heading.valid_next_part2(count):
             nx, ny, _ = h.move(x, y)
             if nx < 0 or nx >= len(data[0]) or ny < 0 or ny >= len(data):
                 continue
