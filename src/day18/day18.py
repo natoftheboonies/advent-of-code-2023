@@ -63,9 +63,11 @@ def main():
             raise ValueError(f"Unknown direction {d}")
 
     rows = max(lagoon, key=lambda x: x[1])[1] + 1
+    minrow = min(lagoon, key=lambda x: x[1])[1]
     cols = max(lagoon, key=lambda x: x[0])[0] + 1
+    mincol = min(lagoon, key=lambda x: x[0])[0]
     count = 0
-    for row in range(rows):
+    for j, row in enumerate(range(minrow, rows)):
         digs = [dig[0] for dig in lagoon if dig[1] == row]
         digs.sort()
         dug = True
@@ -83,17 +85,18 @@ def main():
                     thisrow += dig - digs[i - 1] - 1
                 dug = not dug
         count += thisrow
-        # logger.debug("digs: %s = %d", digs, thisrow)
-        for col in range(cols):
-            if (col, row) in lagoon:
-                print("#", end="")
-            else:
-                print(".", end="")
+        if j % 10 == 0:
+            logger.debug("%d digs: %s = %d", j + 1, digs, thisrow)
+        # for col in range(mincol, cols):
+        #     if (col, row) in lagoon:
+        #         print("#", end="")
+        #     else:
+        #         print(".", end="")
 
-        print()
+        # print()
 
     logger.info("Part 1: %d", count)
-    # 1248 low
+    # 1248 low, 46131 low
 
 
 if __name__ == "__main__":
