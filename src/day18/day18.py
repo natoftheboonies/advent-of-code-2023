@@ -18,12 +18,52 @@ DAY = 18
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
 except ValueError as e:
     logger.error(e)
+
+
+# https://en.wikipedia.org/wiki/Shoelace_formula
+def shoelace(coords):
+    area = 0
+    for i in range(len(coords) - 1):
+        x1, y1 = coords[i]
+        x2, y2 = coords[i + 1]
+        area += x1 * y2 - x2 * y1
+    return abs(area) // 2
+
+
+def solve(inst):
+    lagoon = []
+    current = (0, 0)
+    lagoon.append(current)
+    outline = 0
+
+    for d, n in inst:
+        if d == "U":
+            current = (current[0], current[1] + n)
+        elif d == "D":
+            current = (current[0], current[1] - n)
+        elif d == "R":
+            current = (current[0] + n, current[1])
+        elif d == "L":
+            current = (current[0] - n, current[1])
+        else:
+            raise ValueError(f"Unknown direction {d}")
+        lagoon.append(current)
+        outline += n
+    area = shoelace(lagoon)
+    logger.debug("area: %d", area)
+    # https://en.wikipedia.org/wiki/Pick%27s_theorem
+    # A = i + b/2 - 1
+    # but we don't want area, we want interior + boundary points.  i+b
+    # and we have outline, which is b
+    # i = A + 1 - b/2
+    i = area + 1 - outline // 2
+    return i + outline
 
 
 def main():
@@ -40,63 +80,24 @@ def main():
         logger.debug(f"{d} {n} {color}")
         inst.append((d, n))
 
-    lagoon = set()
-    current = (0, 0)
-    for d, n in inst:
-        if d == "U":
-            for i in range(n):
-                current = (current[0], current[1] - 1)
-                lagoon.add(current)
-        elif d == "D":
-            for i in range(n):
-                current = (current[0], current[1] + 1)
-                lagoon.add(current)
-        elif d == "R":
-            for i in range(n):
-                current = (current[0] + 1, current[1])
-                lagoon.add(current)
-        elif d == "L":
-            for i in range(n):
-                current = (current[0] - 1, current[1])
-                lagoon.add(current)
-        else:
-            raise ValueError(f"Unknown direction {d}")
+    logger.info("Part 1: %d", solve(inst))
 
-    rows = max(lagoon, key=lambda x: x[1])[1] + 1
-    minrow = min(lagoon, key=lambda x: x[1])[1]
-    cols = max(lagoon, key=lambda x: x[0])[0] + 1
-    mincol = min(lagoon, key=lambda x: x[0])[0]
-    count = 0
-    for j, row in enumerate(range(minrow, rows)):
-        digs = [dig[0] for dig in lagoon if dig[1] == row]
-        digs.sort()
-        dug = True
-        thisrow = 0
-        for i, dig in enumerate(digs):
-            thisrow += 1
-            if i == 0:
-                dug = True
-                continue
-            # if consecutive
-            if dig == digs[i - 1] + 1:
-                continue
-            else:  # gap
-                if dug:
-                    thisrow += dig - digs[i - 1] - 1
-                dug = not dug
-        count += thisrow
-        if j % 10 == 0:
-            logger.debug("%d digs: %s = %d", j + 1, digs, thisrow)
-        # for col in range(mincol, cols):
-        #     if (col, row) in lagoon:
-        #         print("#", end="")
-        #     else:
-        #         print(".", end="")
-
-        # print()
-
-    logger.info("Part 1: %d", count)
-    # 1248 low, 46131 low
+    # Part 2
+    decode = {
+        0: "R",
+        1: "D",
+        2: "L",
+        3: "U",
+    }
+    inst = []
+    for line in data:
+        d, n, color = line.strip().split()
+        color = color[2:-1]
+        n = int(color[:-1], base=16)
+        d = decode[int(color[-1])]
+        logger.debug(f"{d} {n}")
+        inst.append((d, n))
+    logger.info("Part 2: %d", solve(inst))
 
 
 if __name__ == "__main__":
