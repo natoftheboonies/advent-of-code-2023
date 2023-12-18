@@ -66,24 +66,34 @@ def main():
     cols = max(lagoon, key=lambda x: x[0])[0] + 1
     count = 0
     for row in range(rows):
-        on = False
-        was_wall = False
+        digs = [dig[0] for dig in lagoon if dig[1] == row]
+        digs.sort()
+        dug = True
+        thisrow = 0
+        for i, dig in enumerate(digs):
+            thisrow += 1
+            if i == 0:
+                dug = True
+                continue
+            # if consecutive
+            if dig == digs[i - 1] + 1:
+                continue
+            else:  # gap
+                if dug:
+                    thisrow += dig - digs[i - 1] - 1
+                dug = not dug
+        count += thisrow
+        # logger.debug("digs: %s = %d", digs, thisrow)
         for col in range(cols):
             if (col, row) in lagoon:
                 print("#", end="")
-                count += 1
-                was_wall = True
             else:
-                if was_wall:
-                    on = not on
-                if on:
-                    print("O", end="")
-                    count += 1
-                else:
-                    print(".", end="")
-                was_wall = False
+                print(".", end="")
+
         print()
+
     logger.info("Part 1: %d", count)
+    # 1248 low
 
 
 if __name__ == "__main__":
