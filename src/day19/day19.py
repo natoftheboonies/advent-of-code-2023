@@ -18,7 +18,7 @@ DAY = 19
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -71,7 +71,7 @@ def main():
 
     rating_sum = 0
     for part in parts_parsed:
-        logger.info("Part: %s", part)
+        logger.debug("Part: %s", part)
         workflow = "in"
         while workflow not in "AR":
             logger.debug("Workflow: %s", workflow)
@@ -138,16 +138,16 @@ def main():
             matched, outcome, continued = split_for_comp(comp, continued)
             if matched is not None:
                 if outcome in "AR":
-                    matches.append((matched, outcome))
+                    if outcome == "A":
+                        matches.append(matched)
                 else:
                     queue.append((matched, outcome))
-    logger.debug("Matches: %s", matches)
+        assert continued is None
+
     prod_ranges = 0
     for match in matches:
-        if match[1] == "R":
-            continue
         prod = 1
-        for cat, (low, high) in match[0].items():
+        for cat, (low, high) in match.items():
             prod *= high - low + 1
         prod_ranges += prod
     logger.info("Part 2: %s", prod_ranges)
