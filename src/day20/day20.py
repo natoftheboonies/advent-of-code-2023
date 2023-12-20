@@ -13,6 +13,7 @@ import logging
 import time
 import aoc_common.aoc_commons as ac
 from collections import deque
+from math import lcm
 
 YEAR = 2023
 DAY = 20
@@ -27,23 +28,13 @@ except ValueError as e:
     logger.error(e)
 
 
-def run_queue(button_press, modules, i=0):
-    low_pulses = 0
-    high_pulses = 0
-    queue = deque([button_press])  # (module, signal, source)
+def run_queue(button_press, modules):
+    queue = deque([button_press])  # (name, signal, source)
+    signals = []
     while queue:
         name, signal, source = queue.popleft()
-        if name in ["ct", "kp", "ks", "xc"] and signal == 0:
-            logger.debug(
-                f"queue: {source} -{'high' if signal else 'low'}-> {name} at {i}"
-            )
-        # TODO ai below
+        signals.append((name, signal))
         # logger.debug(f"queue: {source} -{'high' if signal else 'low'}-> {name}")
-        if signal == 0:
-            low_pulses += 1
-        else:
-            assert signal == 1
-            high_pulses += 1
         module = modules[name]
         if module["type"] == "broadcast":
             # broadcast to all
@@ -72,7 +63,7 @@ def run_queue(button_press, modules, i=0):
             continue
         else:
             assert False
-    return low_pulses, high_pulses, modules
+    return signals
 
 
 def parse_modules(data):
@@ -102,7 +93,6 @@ def parse_modules(data):
 
     # add untyped
     for name in all_notify:
-        logger.debug(f"untyped: {name}")
         if name not in modules:
             modules[name] = {"type": None, "notify": []}
 
@@ -113,14 +103,15 @@ def parse_modules(data):
     return modules
 
 
-def part1(modules):
+def part1(data):
+    modules = parse_modules(data)
     low_pulses = 0
     high_pulses = 0
     button_press = ("broadcaster", 0, "button")
     for _ in range(1000):
-        low, high = run_queue(button_press, modules)
-        low_pulses += low
-        high_pulses += high
+        signals = run_queue(button_press, modules)
+        low_pulses += sum(1 for _, x in signals if x == 0)
+        high_pulses += sum(1 for _, x in signals if x == 1)
     logger.debug(f"low pulses: {low_pulses}")
     logger.debug(f"high pulses: {high_pulses}")
     logger.info("Part 1: %d", low_pulses * high_pulses)
@@ -133,29 +124,36 @@ def main():
         data = f.read().splitlines()
 
     logger.debug(data)
-    modules = parse_modules(data)
-    # part1(modules)
+    part1(data)
 
     # part 2: when does rx receive 1?
     # rx comes from &bb fed by 4 &s
     modules = parse_modules(data)
-    final_boss = [module for module in modules.values() if "rx" in module["notify"]]
-    logger.debug("boss: %s", final_boss)
+    princess = "rx"
+    final_boss = [
+        name for name, module in modules.items() if princess in module["notify"]
+    ]
     assert len(final_boss) == 1
     final_boss = final_boss[0]
-    # final boss sends 0 when all minions are 1
+    logger.debug("boss: %s", final_boss)
+    # final boss sends 0 when all minions send 1
     # minions send 1 when they receive 0
-    minions = {n: 0 for n in final_boss["received"].keys()}
-    logger.debug("minions %s", minions)
+    # they receive 0 in the middle of a button press...
+    minions = {
+        name: 0 for name, module in modules.items() if final_boss in module["notify"]
+    }
 
-    for i in range(10000):
-        button_press = ("broadcaster", 0, "button")
-        low, high, _ = run_queue(button_press, modules, i + 1)
-    # 11:56:50.949:day20 - DBG: queue: xd -low-> kp at 3733
-    # 11:56:50.952:day20 - DBG: queue: gt -low-> ct at 3797
-    # 11:56:50.953:day20 - DBG: queue: zt -low-> xc at 3823
-    # 11:56:50.957:day20 - DBG: queue: ms -low-> ks at 3907
-    logger.info("Part 2: %d", 3733 * 3797 * 3823 * 3907)
+    button_press = ("broadcaster", 0, "button")
+    i = 1
+    while not all(minions.values()):
+        signals = run_queue(button_press, modules)
+        for name, signal in signals:
+            if name in minions and signal == 0:
+                minions[name] = i
+                logger.debug("minion %s: %d", name, i)
+        i += 1
+
+    logger.info("Part 2: %d", lcm(*minions.values()))
 
 
 if __name__ == "__main__":
