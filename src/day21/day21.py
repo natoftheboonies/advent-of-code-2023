@@ -28,7 +28,7 @@ except ValueError as e:
 
 def main():
     puzzle = locations.input_file
-    puzzle = locations.sample_input_file
+    # puzzle = locations.sample_input_file
 
     with open(puzzle, mode="rt") as f:
         data = f.read().splitlines()
@@ -61,11 +61,57 @@ def main():
                 factors.append(i)
         return factors
 
-    part2_steps = 26501365
+    PART2_STEPS = 26501365
     # factor part2_steps
     # logger.debug("part2_factors: %s", find_factors(part2_steps))
-    assert 5 * 11 * 481843 == part2_steps
+    assert 5 * 11 * 481843 == PART2_STEPS
     logger.debug("grid size: %d x %d", len(grid), len(grid[0]))
+
+    # yeah I don't know how to do this.  help me reddit!
+    # https://www.reddit.com/r/adventofcode/comments/18nevo3/comment/keavm0j/?context=3
+    ROWS = len(data)
+    COLS = len(data[0])
+
+    plots = {
+        (i, j) for i in range(ROWS) for j in range(len(data[i])) if data[i][j] in ".S"
+    }
+    S = next(
+        (i, j) for i in range(ROWS) for j in range(len(data[i])) if data[i][j] == "S"
+    )
+    dirs = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+
+    def tadd(a, b):
+        return ((a[0] + b[0]), (a[1] + b[1]))
+
+    def modp(a):
+        return (a[0] % COLS, a[1] % ROWS)
+
+    visited, new, cache = {S}, {S}, {0: 1}
+    k, r = PART2_STEPS // ROWS, PART2_STEPS % ROWS
+    logger.debug("n %d, k %d, r %d", ROWS, k, r)
+
+    # P(x) = a*x**2 + b*x + c:
+    # c = P(0)
+    # a = (P(2) + c - 2*P(1)) / 2
+    # b = P(1) - c -a
+
+    for c in range(1, r + 2 * ROWS + 1):
+        visited, new = new, {
+            np
+            for p in new
+            for di in dirs
+            for np in [tadd(p, di)]
+            if np not in visited and modp(np) in plots
+        }
+
+        cache[c] = len(new) + (cache[c - 2] if c > 1 else 0)
+
+    d2 = cache[r + 2 * ROWS] + cache[r] - 2 * cache[r + ROWS]
+    d1 = cache[r + 2 * ROWS] - cache[r + ROWS]
+    for step in [6, 10, 50]:
+        logger.debug("step %d: %d", step, cache[step])
+    part2 = cache[r + 2 * ROWS] + (k - 2) * (2 * d1 + (k - 1) * d2) // 2
+    logger.info("Part 2: %s", part2)
 
 
 if __name__ == "__main__":
