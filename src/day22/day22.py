@@ -12,14 +12,13 @@ Part 2:
 import logging
 import time
 import aoc_common.aoc_commons as ac
-import string
 
 YEAR = 2023
 DAY = 22
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -65,7 +64,7 @@ def bricks_overlap(brick, other):
 
 def main():
     puzzle = locations.input_file
-    puzzle = locations.sample_input_file
+    # puzzle = locations.sample_input_file
     with open(puzzle, mode="rt") as f:
         data = f.read().splitlines()
     bricks = []
@@ -122,7 +121,31 @@ def main():
         else:
             count += 1
 
-    logger.info("Part 1: %s", count)
+    logger.info("Part 1: %d", count)
+
+    # Part 2
+    count = 0
+
+    for i in range(len(bricks)):
+        logger.debug("removing brick %s", i)
+        falling = []
+        # if we remove brick i, what else will fall?  start with bricks supported by only i
+        cascade = [j for j in brick_supporting[i] if brick_supported_by[j] == [i]]
+        falling.extend(cascade)
+        logger.debug("directly falling bricks: %s", falling)
+        # now remove thos bricks and see what else falls
+        while len(cascade) > 0:
+            j = cascade.pop()
+            for k in brick_supporting[j]:
+                if k in falling:
+                    continue
+                if all(l in falling or l == i for l in brick_supported_by[k]):
+                    logger.debug("brick %s also falling", k)
+                    cascade.append(k)
+                    falling.append(k)
+        logger.debug("total falling bricks: %s", falling)
+        count += len(falling)
+    logger.info("Part 2: %d", count)
 
 
 if __name__ == "__main__":
