@@ -44,13 +44,48 @@ def main():
     assert paths[start] == "."
     assert paths[goal] == "."
 
-    max_steps = 0
-    queue = [(start, set())]
-    visited = {}
     valid_direction = {">": (1, 0), "<": (-1, 0), "^": (0, -1), "v": (0, 1)}
+
+    junctions = set([start, goal])
+    for pos in paths:
+        if paths[pos] != ".":
+            dirs = [valid_direction[paths[pos]]]
+        else:
+            dirs = valid_direction.values()
+        exits = 0
+        for dx, dy in dirs:
+            if (pos[0] + dx, pos[1] + dy) in paths:
+                exits += 1
+        if exits > 2:
+            junctions.add(pos)
+
+    compressed = {junction: dict() for junction in junctions}
+    for junction in junctions:
+        queue = [(junction, 0)]
+        visited = set(junction)
+        while queue:
+            pos, distance = queue.pop(0)
+            if pos in junctions and pos != junction:
+                compressed[junction][pos] = distance
+                continue
+            explore = valid_direction.values()
+            if paths[pos] != ".":  # we're on a hill
+                explore = [valid_direction[paths[pos]]]
+            for dx, dy in explore:
+                next_pos = (pos[0] + dx, pos[1] + dy)
+                if next_pos not in paths or next_pos in visited:
+                    continue
+                queue.append((next_pos, distance + 1))
+                visited.add(next_pos)
+
+    logger.debug("compressed %s", compressed)
+
+    max_steps = 0
+    queue = [(start, set(), 0)]
+    visited = {}
+
     while queue:
-        pos, hike = queue.pop(0)
-        distance = len(hike)
+        pos, hike, distance = queue.pop(0)
         # logger.debug(f"at {pos} after {distance} steps")
         # logger.debug(queue)
         # have we been here on a longer hike?
@@ -66,30 +101,16 @@ def main():
                 logger.debug(f"new max steps: {max_steps}")
             continue
         # let's see where we can hike
-        for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-            next_pos = (pos[0] + dx, pos[1] + dy)
-            if next_pos not in paths:  # not here
-                continue
+        for next_pos in compressed[pos]:
             if next_pos in hike:  # already been here
                 continue
-            # follow hills the right way
-            if paths[next_pos] != "." and not valid_direction[paths[next_pos]] == (
-                dx,
-                dy,
-            ):
-                # logger.debug(
-                #     "not a valid direction at %s: %s going %s",
-                #     next_pos,
-                #     paths[next_pos],
-                #     (dx, dy),
-                # )
-                continue
+            next_distance = compressed[pos][next_pos]
             # if we've been here before, check if we can do better
-            if next_pos in visited and visited[next_pos] > distance + 1:
+            if next_pos in visited and visited[next_pos] > distance + next_distance:
                 continue
             hike_cont = hike.copy()
             hike_cont.add(pos)
-            queue.append((next_pos, hike_cont))
+            queue.append((next_pos, hike_cont, distance + next_distance))
     logger.info("Part 1: %s", max_steps)
 
 
