@@ -48,7 +48,7 @@ def main():
 
     junctions = set([start, goal])
     for pos in paths:
-        if paths[pos] != ".":
+        if False and paths[pos] != ".":
             dirs = [valid_direction[paths[pos]]]
         else:
             dirs = valid_direction.values()
@@ -69,8 +69,8 @@ def main():
                 compressed[junction][pos] = distance
                 continue
             explore = valid_direction.values()
-            if paths[pos] != ".":  # we're on a hill
-                explore = [valid_direction[paths[pos]]]
+            # if paths[pos] != ".":  # we're on a hill
+            #     explore = [valid_direction[paths[pos]]]
             for dx, dy in explore:
                 next_pos = (pos[0] + dx, pos[1] + dy)
                 if next_pos not in paths or next_pos in visited:
@@ -80,38 +80,59 @@ def main():
 
     logger.debug("compressed %s", compressed)
 
-    max_steps = 0
-    queue = [(start, set(), 0)]
-    visited = {}
+    # maybe this works, but takes too long
+    # max_steps = 0
+    # queue = [(start, set(), 0)]
+    # visited = {}
+    # while queue:
+    #     pos, hike, distance = queue.pop(0)
+    #     # logger.debug(f"at {pos} after {distance} steps")
+    #     # logger.debug(queue)
+    #     # have we been here on a longer hike?
+    #     if pos in hike:
+    #         continue
+    #     # if visited.get(pos, 0) > distance:
+    #     #     continue
+    #     # if pos in visited:
+    #     #     logger.debug(f"already been here in {visited[pos]} steps, now {distance}")
+    #     visited[pos] = distance
+    #     if pos == goal:
+    #         # logger.debug(f"goal reached in {distance} steps")
+    #         if distance > max_steps:
+    #             max_steps = distance
+    #             logger.debug(f"new max steps: {max_steps}")
+    #         continue
+    #     # let's see where we can hike
+    #     for next_pos in compressed[pos]:
+    #         if next_pos in hike:  # already been here
+    #             continue
+    #         next_distance = compressed[pos][next_pos]
+    #         # # if we've been here before, check if we can do better
+    #         # if next_pos in visited and visited[next_pos] > distance + next_distance:
+    #         #     continue
+    #         hike_cont = hike.copy()
+    #         hike_cont.add(pos)
+    #         queue.append((next_pos, hike_cont, distance + next_distance))
 
-    while queue:
-        pos, hike, distance = queue.pop(0)
-        # logger.debug(f"at {pos} after {distance} steps")
-        # logger.debug(queue)
-        # have we been here on a longer hike?
-        if visited.get(pos, 0) > distance:
-            continue
-        # if pos in visited:
-        #     logger.debug(f"already been here in {visited[pos]} steps, now {distance}")
-        visited[pos] = distance
+    # global visited since we explore dfs
+    hike = set()
+
+    def dfs(pos):
         if pos == goal:
-            logger.debug(f"goal reached in {distance} steps")
-            if distance > max_steps:
-                max_steps = distance
-                logger.debug(f"new max steps: {max_steps}")
-            continue
-        # let's see where we can hike
+            return 0
+        hike.add(pos)
+        max_distance = 0
         for next_pos in compressed[pos]:
-            if next_pos in hike:  # already been here
+            if next_pos in hike:
                 continue
-            next_distance = compressed[pos][next_pos]
-            # if we've been here before, check if we can do better
-            if next_pos in visited and visited[next_pos] > distance + next_distance:
-                continue
-            hike_cont = hike.copy()
-            hike_cont.add(pos)
-            queue.append((next_pos, hike_cont, distance + next_distance))
+            max_distance = max(max_distance, dfs(next_pos) + compressed[pos][next_pos])
+        hike.remove(pos)
+        return max_distance
+
+    max_steps = dfs(start)
+
     logger.info("Part 1: %s", max_steps)
+    # 6138 too low
 
 
 if __name__ == "__main__":
